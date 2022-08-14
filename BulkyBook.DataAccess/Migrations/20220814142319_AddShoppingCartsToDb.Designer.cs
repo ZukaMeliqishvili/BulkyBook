@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BulkyBook.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220813103629_AddShoppingCartToDb")]
-    partial class AddShoppingCartToDb
+    [Migration("20220814142319_AddShoppingCartsToDb")]
+    partial class AddShoppingCartsToDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
