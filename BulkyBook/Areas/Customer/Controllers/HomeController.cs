@@ -46,13 +46,19 @@ namespace BulkyBook.Controllers
             ShoppingCart cartFromDb = _unitOfWork.ShoppingCart.GetFirstOrDefault(
                 u => u.ApplicationUserId == claim.Value && u.ProductId == shoppingCart.ProductId);
 
-            if(cartFromDb == null)
+            if (shoppingCart.Count < 0 || shoppingCart.Count > 1000)
+            {
+                TempData["Error"] = "Please Enter value between 1-1000";
+            }
+            else if (cartFromDb == null)
             {
                 _unitOfWork.ShoppingCart.Add(shoppingCart);
+                TempData["Success"] = "Product was added in cart successfully";
             }
             else
             {
                 _unitOfWork.ShoppingCart.IncrementCount(cartFromDb,shoppingCart.Count);
+                TempData["Success"] = "Product in you cart was updated successfully";
             }
             
             _unitOfWork.Save();
