@@ -57,7 +57,7 @@ namespace BulkyBook.Controllers
             }
             else
             {
-                _unitOfWork.ShoppingCart.IncrementCount(cartFromDb,shoppingCart.Count);
+                _unitOfWork.ShoppingCart.IncrementCount(cartFromDb, shoppingCart.Count);
                 TempData["Success"] = "Product in you cart was updated successfully";
             }
             
