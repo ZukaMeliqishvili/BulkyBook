@@ -24,10 +24,14 @@ namespace BulkyBook.DataAccess.Repository
             dbset.Add(entity);
         }
         //include properties category,covertype
-        public IEnumerable<T> GetAll(string? includeProperties = null)
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
         {
             IQueryable<T> query = dbset;
-            if(includeProperties != null)
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+            if (includeProperties != null)
             {
                 foreach (var prop in includeProperties.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries))
                 {
