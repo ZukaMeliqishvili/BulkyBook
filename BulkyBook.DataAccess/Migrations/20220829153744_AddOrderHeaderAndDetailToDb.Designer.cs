@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BulkyBook.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220826144409_AddOrderHeaderAndDetailToDb")]
+    [Migration("20220829153744_AddOrderHeaderAndDetailToDb")]
     partial class AddOrderHeaderAndDetailToDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

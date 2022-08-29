@@ -1,8 +1,12 @@
 ﻿using BulkyBook.DataAccess.Repository.IRepository;
+using BulkyBook.Models;
 using BulkyBook.Models.ViewModels;
+using BulkyBook.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe.Checkout;
 using System.Security.Claims;
+using static System.Net.WebRequestMethods;
 
 namespace BulkyBook.Areas.Customer.Controllers
 {
@@ -11,6 +15,7 @@ namespace BulkyBook.Areas.Customer.Controllers
     public class CartController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        [BindProperty]
         public ShoppingCartVM ShoppingCartVM { get; set; }
         public double OrderTotal { get; set; }
         public CartController(IUnitOfWork unitOfWork)
@@ -59,6 +64,82 @@ namespace BulkyBook.Areas.Customer.Controllers
                 ShoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
             }
             return View(ShoppingCartVM);
+        }
+        [HttpPost]
+        [ActionName("Summary")]
+        [ValidateAntiForgeryToken]
+        public IActionResult SummaryPost()
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            ShoppingCartVM.ListCart = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == claim.Value,
+               includeProperties: "Product");
+            ShoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
+            ShoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+            ShoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
+            ShoppingCartVM.OrderHeader.ApplicationUserId = claim.Value;
+            
+            foreach (var cart in ShoppingCartVM.ListCart)
+            {
+                cart.Price = GetPriceBasedOnQuantity(cart.Count, cart.Product.Price, cart.Product.Price50, cart.Product.Price100);
+                ShoppingCartVM.OrderHeader.OrderTotal += cart.Price * cart.Count;
+            }
+            _unitOfWork.OrderHeader.Add(ShoppingCartVM.OrderHeader);
+            _unitOfWork.Save();
+
+            foreach(var cart in ShoppingCartVM.ListCart)
+            {
+                OrderDetail orderDetail = new()
+                {
+                    ProductId = cart.ProductId,
+                    OrderId = ShoppingCartVM.OrderHeader.Id,
+                    Price = cart.Price,
+                    Count = cart.Count
+                };
+                _unitOfWork.OrderDetail.Add(orderDetail);
+                _unitOfWork.Save();
+            }
+            //Stripe Settings
+            var domain = "https://localhost:44319/";
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string>
+                {
+                    "card",
+                },
+                LineItems = new List<SessionLineItemOptions>(),
+
+                Mode = "payment",
+                SuccessUrl = domain + $"customer/cart/OrderConfirmation?id{ShoppingCartVM.OrderHeader.Id}",
+                CancelUrl = domain+"custome/cart/index",
+            };
+            foreach(var item in ShoppingCartVM.ListCart)
+            {
+                var sessionLineItem = new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = (long)(item.Price*100),
+                        Currency = "usd",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = item.Product.Title,
+                        },
+
+                    },
+                    Quantity = item.Count,
+                };
+                options.LineItems.Add(sessionLineItem);
+            }
+            var service = new SessionService();
+            Session session = service.Create(options);
+
+            Response.Headers.Add("Location", session.Url);
+            return new StatusCodeResult(303);
+
+            //_unitOfWork.ShoppingCart.RemoveRange(ShoppingCartVM.ListCart);
+            //_unitOfWork.Save();
+            //return RedirectToAction("Index","Home");
         }
 
         public IActionResult Plus(int cartId)
