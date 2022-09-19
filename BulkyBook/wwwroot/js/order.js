@@ -13,11 +13,11 @@ function loadDataTable() {
         },
         "columns": [
             { "data": "id", "Width": "5%" },
-            { "data": "name", "Width": "15%" },
+            { "data": "name", "Width": "20" },
             { "data": "phoneNumber", "Width": "15%" },
-            { "data": "applicationUser.email", "Width": "15%" },
-            { "data": "orderStatus", "Width": "15%" },
-            { "data": "orderTotal", "Width": "15%" },
+            { "data": "applicationUser.email", "Width": "20%" },
+            { "data": "orderStatus", "Width": "15" },
+            { "data": "orderTotal", "Width": "10%" },
             {
                 "data": "id",
                 "render": function (data) {
