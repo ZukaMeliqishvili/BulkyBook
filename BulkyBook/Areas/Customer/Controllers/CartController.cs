@@ -123,7 +123,7 @@ namespace BulkyBook.Areas.Customer.Controllers
 
 
                 //Stripe Settings
-                var domain = "https://localhost:7059/";
+                var domain = "https://localhost:44319/";
                 var options = new SessionCreateOptions
                 {
                     PaymentMethodTypes = new List<string>

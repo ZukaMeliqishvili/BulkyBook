@@ -2,13 +2,29 @@
 
 
 $(document).ready(function () {
-    loadDataTable();
+    var url = window.location.search;
+    if (url.includes("inprocess")) {
+        loadDataTable("inprocess");
+    }
+    else {
+        if (url.includes("complete")) {
+            loadDataTable("complete");
+        }
+        else {
+            if (url.includes("pending")) {
+                loadDataTable("pending");
+            }
+            else {
+                loadDataTable("all");
+            }
+        }
+    }
 });
 
-function loadDataTable() {
+function loadDataTable(status) {
     dataTable = $('#tblData').DataTable({
         "ajax":{
-            "url": "/Admin/Order/GetAll"
+            "url": "/Admin/Order/GetAll?status="+status
 
         },
         "columns": [
