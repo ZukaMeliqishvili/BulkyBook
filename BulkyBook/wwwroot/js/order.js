@@ -7,15 +7,20 @@ $(document).ready(function () {
         loadDataTable("inprocess");
     }
     else {
-        if (url.includes("complete")) {
-            loadDataTable("complete");
+        if (url.includes("completed")) {
+            loadDataTable("completed");
         }
         else {
             if (url.includes("pending")) {
                 loadDataTable("pending");
             }
             else {
-                loadDataTable("all");
+                if (url.includes("approved")) {
+                    loadDataTable("approved");
+                }
+                else {
+                    loadDataTable("all");
+                }
             }
         }
     }
@@ -28,20 +33,22 @@ function loadDataTable(status) {
 
         },
         "columns": [
-            { "data": "id", "Width": "5%" },
-            { "data": "name", "Width": "20" },
+            { "data": "name", "Width": "15%" },
+            { "data": "streetAddress", "Width": "15%" },
+            { "data": "city", "Width": "15%" },
+            { "data": "state", "Width": "15%" },
             { "data": "phoneNumber", "Width": "15%" },
-            { "data": "applicationUser.email", "Width": "20%" },
-            { "data": "orderStatus", "Width": "15" },
-            { "data": "orderTotal", "Width": "10%" },
             {
                 "data": "id",
                 "render": function (data) {
                     return `
                             <div class="w-75 btn-group" role="group">
-                        <a href="/Admin/Order/Details?orderId=${data}"
+                        <a href="/Admin/Company/upsert?id=${data}"
                         class="btn btn-primary mx-2">
-                        <i class="bi bi-pencil-square"></i></a>
+                        <i class="bi bi-pencil-square"></i>Edit</a>
+                        <a onClick=Delete('/Admin/Company/Delete/${data}')
+                        class="btn btn-danger mx-2">
+                        <i class="bi bi-trash"></i>Delete</a>
                     </div>
                         `
                 },
@@ -51,4 +58,32 @@ function loadDataTable(status) {
 
         ]
     });
+}
+function Delete(url)
+{
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: url,
+                type: 'DELETE',
+                success: function (data) {
+                    if (data.success) {
+                        dataTable.ajax.reload();
+                        toastr.success(data.message)
+                    }
+                    else {
+                        toastr.error(data.message)
+                    }
+                }
+            })
+        }
+    })
 }
